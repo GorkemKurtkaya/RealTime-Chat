@@ -3,7 +3,8 @@ import {
   loginUser,
   refreshToken,
   logoutUser,
-    getProfile
+  getProfile
+
 } from "../services/authService.js";
 
 // Kayıt
@@ -34,7 +35,7 @@ export const login = async (req, res) => {
     // Cookie'ye token yaz
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
     res.cookie("userId", user._id.toString(), { httpOnly: true, sameSite: "strict" });
-    res.status(200).json({ message: "Giriş başarılı", user: userWithoutPassword });
+    res.status(200).json({ message: "Giriş başarılı", user: userWithoutPassword, token });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

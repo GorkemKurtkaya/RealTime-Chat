@@ -1,12 +1,12 @@
 import {
-    createConversation,
+    createConversations,
     getUserConversations
-} from "../services/conversationService.js";
+} from "../services/conservationService.js";
 
 export const createConversation = async (req, res) => {
   try {
     const { userIds } = req.body;
-    const conversation = await createConversation(userIds);
+    const conversation = await createConversations(userIds);
     res.status(201).json(conversation);
   } catch (err) {
     res.status(500).json({ message: err.message });

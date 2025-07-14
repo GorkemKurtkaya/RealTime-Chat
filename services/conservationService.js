@@ -1,6 +1,6 @@
-import Conversation from '../models/Conversation.js';
+import Conversation from '../models/conservationModel.js';
 
-export const createConversation = async (userIds) => {
+export const createConversations = async (userIds) => {
   const existing = await Conversation.findOne({
     participants: { $all: userIds, $size: userIds.length }
   });

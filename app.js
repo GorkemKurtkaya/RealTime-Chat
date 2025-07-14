@@ -5,12 +5,19 @@ import logger from './utils/logger.js';
 import conn from './db.js';
 import authRoute from './routes/authRoute.js';
 import userRoute from './routes/userRoute.js';
+import conservationRoute from './routes/conservationRoute.js';
+import messageRoute from './routes/messageRoute.js';
+import socketHandler from './utils/socket.js';
+import { Server } from 'socket.io';
+import http from 'http';
 
 dotenv.config();
 
 conn();
 
 const app = express();
+const server = http.createServer(app);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -24,9 +31,13 @@ app.use((req, res, next) => {
 
 app.use("/auth", authRoute);
 app.use("/user", userRoute);
+app.use("/conservations", conservationRoute);
+app.use("/messages", messageRoute);
 
 
+socketHandler(server);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server ${process.env.PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    logger.info(`Server ${PORT}`);
 });
