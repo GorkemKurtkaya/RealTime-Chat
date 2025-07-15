@@ -15,14 +15,19 @@ import rabbitMQ from './utils/rabbitmq.js';
 import { sendAutoMessage } from './services/autoMessageService.js';
 
 
-rabbitMQ.connect();
+
+
 
 dotenv.config();
 
-conn();
+
 
 const app = express();
 const server = http.createServer(app);
+
+rabbitMQ.connect();
+conn();
+
 
 
 app.use(express.json());

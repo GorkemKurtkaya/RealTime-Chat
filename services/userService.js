@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import redisClient from '../utils/redis.js';
 
 
 export const getAllUsers = async () => {
@@ -23,4 +24,19 @@ export const changeNameandMailService = async (userId, newName, newMail) => {
     await user.save();
 
     return "Name and/or email changed successfully";
+};
+
+// Anlık online kullanıcı sayısı
+export const getOnlineUserCount = async () => {
+    return await redisClient.sCard('online_users');
+};
+
+// Belirli bir kullanıcının online olup olmadığını kontrol et
+export const isUserOnline = async (userId) => {
+    return (await redisClient.sIsMember('online_users', userId)) === 1;
+};
+
+// Online kullanıcıların ID listesini getir
+export const getOnlineUserList = async () => {
+    return await redisClient.sMembers('online_users');
 };

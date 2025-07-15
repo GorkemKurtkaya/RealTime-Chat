@@ -3,7 +3,8 @@ import AutoMessage from "../models/autoMessageModel.js";
 import rabbitMQ from "../utils/rabbitmq.js";
 import Message from "../models/messageModel.js";
 import { getIO } from "../utils/socket.js";
-import Conversation from "../models/conversationModel.js"; 
+import Conversation from "../models/conversationModel.js";
+import redisClient from '../utils/redis.js';
 
 
 const randomMessages = [
@@ -19,7 +20,10 @@ const AUTO_MESSAGE_QUEUE = "auto_messages";
 
 // 1. Yeni Mesaj Planlama
 export const scheduleAutoMessages = async () => {
-  const users = await User.find({ isActive: true });
+  const onlineUserIds = await redisClient.sMembers('online_users');
+  if (onlineUserIds.length < 2) return;
+
+  const users = await User.find({ _id: { $in: onlineUserIds } });
   if (users.length < 2) return;
 
   const shuffled = shuffleArray(users);

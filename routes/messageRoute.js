@@ -1,8 +1,13 @@
 import express from 'express';
 const router = express.Router();
 import * as messageController from '../controllers/messageController.js';
+import { authMiddleware,adminGuard } from '../middleware/authmiddleware.js';
 
-router.post('/', messageController.sendMessage);
-router.get('/:conversationId', messageController.getMessages);
+
+// Mesaj gönderme
+router.post('/', authMiddleware, messageController.sendMessage);
+
+// Mesajları alma
+router.get('/:conversationId', authMiddleware, messageController.getMessages);
 
 export default router;

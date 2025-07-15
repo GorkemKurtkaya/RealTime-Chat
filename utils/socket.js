@@ -4,6 +4,7 @@ import { sendToMessage } from '../services/messageService.js';
 import { getUserConversations } from '../services/conservationService.js';
 import User from '../models/userModel.js';
 import sanitizeHtml from 'sanitize-html';
+import redisClient from '../utils/redis.js';
 
 const onlineUsers = new Map();
 
@@ -24,8 +25,13 @@ const socketHandler = (server) => {
 
   io.on('connection', async (socket) => {
     const userId = socket.user.id;
+    
     onlineUsers.set(userId, { socketId: socket.id, isActive: true });
-    await User.findByIdAndUpdate(userId, { isActive: true });
+
+    await redisClient.set(`user:${userId}:isActive`, 'true');
+    await redisClient.sAdd('online_users', userId);
+    // await User.findByIdAndUpdate(userId, { isActive: true }); 
+
     console.log(`🔌 ${userId} connected`);
 
     socket.broadcast.emit('user_online', { userId });
@@ -118,7 +124,9 @@ const socketHandler = (server) => {
       const rooms = Array.from(socket.rooms).filter(r => r !== socket.id);
       if (rooms.length === 0) {
         onlineUsers.set(userId, { socketId: socket.id, isActive: false });
-        await User.findByIdAndUpdate(userId, { isActive: false });
+        await redisClient.set(`user:${userId}:isActive`, 'false');
+        await redisClient.sRem('online_users', userId);
+        // await User.findByIdAndUpdate(userId, { isActive: false });
         socket.broadcast.emit('user_offline', { userId });
         console.log(`❌ ${userId} is now fully offline (left all rooms)`);
       }
@@ -127,7 +135,9 @@ const socketHandler = (server) => {
     
     socket.on('disconnect', async () => {
       onlineUsers.set(userId, { socketId: socket.id, isActive: false });
-      await User.findByIdAndUpdate(userId, { isActive: false });
+      await redisClient.set(`user:${userId}:isActive`, 'false');
+      await redisClient.sRem('online_users', userId);
+      // await User.findByIdAndUpdate(userId, { isActive: false });
       socket.broadcast.emit('user_offline', { userId });
       console.log(`❌ ${userId} disconnected`);
     });

@@ -26,15 +26,16 @@ export const register = async (req, res) => {
 // Giriş
 export const login = async (req, res) => {
   try {
-    const { user, token } = await loginUser(req.body);
+    const { user, token, refreshToken } = await loginUser(req.body);
     const userWithoutPassword = {
         ...user.toObject(),
         password: undefined,
     };
 
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict" });
     res.cookie("userId", user._id.toString(), { httpOnly: true, sameSite: "strict" });
-    res.status(200).json({ message: "Giriş başarılı", user: userWithoutPassword, token });
+    res.status(200).json({ message: "Giriş başarılı", user: userWithoutPassword, token, refreshToken });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -43,10 +44,13 @@ export const login = async (req, res) => {
 // Token yenileme
 export const refresh = async (req, res) => {
   try {
-    const oldToken = req.cookies.token;
-    const { user, token } = await refreshToken(oldToken);
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ error: "Refresh token bulunamadı." });
+    }
+    const { user, token } = await refreshToken(refreshToken);
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
-    res.status(200).json({ message: "Token yenilendi" });
+    res.status(200).json({ message: "Token yenilendi", token });
   } catch (error) {
     res.status(401).json({ error: error.message });
   }
@@ -58,6 +62,7 @@ export const logout = async (req, res) => {
     await logoutUser();
     res.clearCookie("token");
     res.clearCookie("userId");
+    res.clearCookie("refreshToken");
     res.status(200).json({ message: "Çıkış başarılı" });
   } catch (error) {
     res.status(400).json({ error: error.message });

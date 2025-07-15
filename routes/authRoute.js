@@ -10,7 +10,7 @@ router.post('/register', authController.register);
 // Giriş
 router.post('/login', authController.login);
 // Token yenileme
-router.post('/refresh', authMiddleware, authController.refresh);
+router.post('/refresh', authController.refresh);
 // Çıkış
 router.post('/logout', authMiddleware, authController.logout);
 // Profil bilgilerini alma

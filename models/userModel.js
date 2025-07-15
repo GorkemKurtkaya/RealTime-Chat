@@ -17,6 +17,11 @@ const userSchema = new Schema({
         required: [true, "Şifre alanı boş bırakılamaz"],
         minLength: [3, "Şifre en az 3 karakter olmalıdır"]
     },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
+    },
     isActive: {
         type: Boolean,
         default: false

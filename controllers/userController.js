@@ -27,3 +27,41 @@ export const changeNameAndEmail = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+// Anlık online kullanıcı sayısını getir
+export const getOnlineUserCount = async (req, res) => {
+  try {
+    const count = await userService.getOnlineUserCount();
+    res.status(200).json({ onlineUserCount: count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Belirli bir kullanıcının online olup olmadığını kontrol et
+export const checkUserOnlineStatus = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Kullanıcı kimliği gerekli." });
+  }
+
+  try {
+    const isOnline = await userService.isUserOnline(userId);
+    res.status(200).json({ userId, isOnline });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// Online kullanıcıların listesini getir
+export const getOnlineUserList = async (req, res) => {
+  try {
+    const onlineUsers = await userService.getOnlineUserList();
+    res.status(200).json({ onlineUsers });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
