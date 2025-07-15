@@ -15,7 +15,6 @@ const randomMessages = [
   "Sana güzel bir haberim var!"
 ];
 
-// RabbitMQ kuyruk adı
 const AUTO_MESSAGE_QUEUE = "auto_messages";
 
 // 1. Yeni Mesaj Planlama

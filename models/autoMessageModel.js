@@ -3,12 +3,12 @@ import mongoose from "mongoose";
 const autoMessageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  conversationId: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation", required: true }, // Eklendi
+  conversationId: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation", required: true },
   content: { type: String, required: true },
   sendDate: { type: Date, required: true },
-  isQueued: { type: Boolean, default: false }, // RabbitMQ'ya eklendi mi?
+  isQueued: { type: Boolean, default: false }, 
   isSent: { type: Boolean, default: false },   
-  queueId: { type: String }, // RabbitMQ mesaj ID'si 
+  queueId: { type: String }, 
   createdAt: { type: Date, default: Date.now }
 });
 
