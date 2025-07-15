@@ -14,6 +14,7 @@ import "./cron/autoMessageCron.js";
 import rabbitMQ from './utils/rabbitmq.js';
 import { sendAutoMessage } from './services/autoMessageService.js';
 import { authLimiter, messageLimiter, conversationLimiter, userLimiter } from './middleware/rate-limitmiddleware.js';
+import { resetAllOnlineUsers } from './services/userService.js';
 
 
 
@@ -51,6 +52,8 @@ app.use("/messages", messageLimiter, messageRoute);
 socketHandler(server);
 
 rabbitMQ.consume("auto_messages", sendAutoMessage);
+
+await resetAllOnlineUsers();
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

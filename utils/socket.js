@@ -5,8 +5,11 @@ import { getUserConversations } from '../services/conservationService.js';
 import User from '../models/userModel.js';
 import sanitizeHtml from 'sanitize-html';
 import redisClient from '../utils/redis.js';
+import { markAllMessagesAsRead, addUserToMessageReadBy } from '../services/messageService.js';
+
 
 const onlineUsers = new Map();
+const typingUsers = new Map();
 
 let ioInstance = null;
 
@@ -25,7 +28,7 @@ const socketHandler = (server) => {
 
   io.on('connection', async (socket) => {
     const userId = socket.user.id;
-    
+
     onlineUsers.set(userId, { socketId: socket.id, isActive: true });
 
     await redisClient.set(`user:${userId}:isActive`, 'true');
@@ -44,6 +47,7 @@ const socketHandler = (server) => {
         return;
       }
       socket.join(roomId);
+      await markAllMessagesAsRead(roomId, userId);
       console.log(`👥 ${userId} joined room ${roomId}`);
       const clients = await io.in(roomId).allSockets();
       const onlineInRoom = Array.from(clients).map(socketId => {
@@ -53,62 +57,99 @@ const socketHandler = (server) => {
         return null;
       }).filter(Boolean);
       socket.emit('online_users', { roomId, users: onlineInRoom });
+      const currentlyTyping = typingUsers.has(roomId) ? Array.from(typingUsers.get(roomId)) : [];
+      socket.emit('currently_typing', { roomId, users: currentlyTyping });
     });
 
 
 
     socket.on('send_message', async (data) => {
       const { roomId, message, content } = data;
+
       if (!roomId) {
         socket.emit('error', { message: 'roomId zorunludur!' });
         return;
       }
+
       const msgContent = content || message;
+
       if (typeof msgContent !== 'string' || msgContent.length === 0 || msgContent.length > 500) {
         socket.emit('error', { message: 'Mesaj metni zorunlu ve 500 karakterden kısa olmalı!' });
         return;
       }
+
       const now = Date.now();
       const last = messageTimestamps.get(userId) || 0;
+
       if (now - last < 1000) {
         socket.emit('error', { message: 'Çok hızlı mesaj atıyorsun!' });
         return;
       }
+
       messageTimestamps.set(userId, now);
+
       const safeMsgContent = sanitizeHtml(msgContent, { allowedTags: [], allowedAttributes: {} });
       const conversations = await getUserConversations(userId);
       const isMember = conversations.some(conv => conv._id.toString() === roomId.toString());
+
       if (!isMember) {
         socket.emit('error', { message: 'Bu odaya mesaj gönderme yetkiniz yok.' });
         return;
       }
+
       try {
-        await sendToMessage(roomId, userId, safeMsgContent);
+        const savedMessage = await sendToMessage(roomId, userId, safeMsgContent);
+
+        const clients = await io.in(roomId).allSockets();
+        const onlineInRoom = Array.from(clients).map(socketId => {
+          for (const [uid, info] of onlineUsers.entries()) {
+            if (info.socketId === socketId && info.isActive) return uid;
+          }
+          return null;
+        }).filter(Boolean);
+
+        for (const uid of onlineInRoom) {
+          if (uid !== userId) { // Mesajı gönderen hariç
+            await addUserToMessageReadBy(savedMessage._id, uid);
+            io.to(roomId).emit('message_read', { messageId: savedMessage._id, userId: uid });
+          }
+        }
+
       } catch (err) {
         console.error('Mesaj veritabanına kaydedilemedi:', err);
       }
-      io.to(roomId).emit('message_received', {
+
+      socket.broadcast.to(roomId).emit('message_received', {
         message: safeMsgContent,
         senderId: userId,
         timestamp: new Date()
       });
-      io.to(roomId).emit('notification', {
+
+      socket.broadcast.to(roomId).emit('notification', {
         type: 'new_message',
         message: 'Yeni mesajınız var!',
         roomId,
         senderId: userId
+        
       });
-      console.log(`📨 ${userId} → ${roomId}: ${safeMsgContent}`);
+
     });
 
 
     socket.on('typing', (roomId) => {
-      socket.to(roomId).emit('typing', { userId });
+      if (socket.rooms.has(roomId)) {
+        if (!typingUsers.has(roomId)) typingUsers.set(roomId, new Set());
+        typingUsers.get(roomId).add(userId);
+        socket.broadcast.to(roomId).emit('typing', { userId, roomId });
+      }
     });
 
 
     socket.on('stop_typing', (roomId) => {
-      socket.to(roomId).emit('stop_typing', { userId });
+      if (socket.rooms.has(roomId)) {
+        if (typingUsers.has(roomId)) typingUsers.get(roomId).delete(userId);
+        socket.broadcast.to(roomId).emit('stop_typing', { userId, roomId });
+      }
     });
 
 
@@ -132,7 +173,7 @@ const socketHandler = (server) => {
       }
     });
 
-    
+
     socket.on('disconnect', async () => {
       onlineUsers.set(userId, { socketId: socket.id, isActive: false });
       await redisClient.set(`user:${userId}:isActive`, 'false');

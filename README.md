@@ -123,13 +123,27 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 - `POST   /conservations`          → Konuşma (sohbet odası) oluşturma
 - `GET    /conservations/:userId`  → Kullanıcıya ait konuşmaları getirme
 
+### 🏢 Oda (Konuşma) Yönetimi
+
+- `POST   /conservations/`                       → Oda oluşturma
+- `PUT    /conservations/:conversationId`         → Oda bilgisi güncelleme (isim, açıklama)
+- `POST   /conservations/:conversationId/add-user`    → Odaya kullanıcı ekle
+- `POST   /conservations/:conversationId/remove-user` → Odayan kullanıcı çıkar
+- `GET    /conservations/info/:conversationId`        → Oda bilgisi getir
+- `GET    /conservations/:conversationId/users`       → Oda üyelerini getir
+- `GET    /conservations/:conversationId/admins`      → Oda adminlerini getir
+- `POST   /conservations/:conversationId/add-admin`   → Odaya admin ekle
+- `POST   /conservations/:conversationId/remove-admin`→ Oda adminliğinden çıkar
+
+> 🔒 Tüm bu endpointler için JWT ile kimlik doğrulama zorunludur.
+
 ### 🌐 Socket.io ile Gerçek Zamanlı
 
-- Oda katılma/ayrılma
-- Mesaj gönderme/alma
-- Yazıyor bildirimi
-- Okundu bildirimi
-- Online/Offline kullanıcı bildirimi
+- Oda katılma/ayrılma (`join_room`, `leave_room`)
+- Mesaj gönderme/alma (`send_message`, `message_received`)
+- Yazıyor bildirimi (`typing`, `stop_typing`)
+- Okundu bildirimi (`message_read`)
+- Online/Offline kullanıcı bildirimi (`user_online`, `user_offline`)
 
 > 🔒 **Not:** Socket.io bağlantısı sırasında JWT token ile kimlik doğrulama zorunludur.
 
@@ -155,6 +169,29 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 - **JWT tabanlı auth** ve admin guard
 
 ---
+
+## 📑 Loglama
+
+- **Winston** ve **winston-daily-rotate-file** ile günlük loglar `logs/` klasöründe tutulur.
+- Hatalar, uyarılar ve önemli işlemler detaylı şekilde loglanır.
+
+---
+
+## 🟢 Çevrim İçi Kullanıcı Yönetimi
+
+- **Redis** ile online kullanıcılar ve durumları yönetilir.
+- Oda bazlı online kullanıcı listesi ve genel online kullanıcı sayısı API ve socket ile alınabilir.
+
+---
+
+## 📑 API Dökümantasyonu & Postman
+
+- [API Dökümanı (Swagger veya benzeri)](DOKUMAN_LINKINIZI_BURAYA_EKLEYIN)
+- [Postman Koleksiyonu](POSTMAN_LINKINIZI_BURAYA_EKLEYIN)
+
+## 📡 Socket.io Event Dökümantasyonu
+
+- [Socket.io Event Listesi ve Payload Detayları](SOCKET_IO_DOKUMAN_LINKINIZI_BURAYA_EKLEYIN)
 
 ## 📑 Loglama
 

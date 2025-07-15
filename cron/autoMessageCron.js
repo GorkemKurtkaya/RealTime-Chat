@@ -1,13 +1,12 @@
 import cron from "node-cron";
 import { scheduleAutoMessages, processPendingMessages } from "../services/autoMessageService.js";
-import rabbitMQ from "../utils/rabbitmq.js";
 
 
 
-// TEST: Her dakika çalışan cron (aslında gece 02:00'da çalışacak)
 cron.schedule("0 2 * * *", async () => {
   try {
     await scheduleAutoMessages();
+    console.log("Otomatik mesajlar planlandı");
 
     await processPendingMessages();
     

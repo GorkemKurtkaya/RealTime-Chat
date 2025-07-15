@@ -40,3 +40,14 @@ export const isUserOnline = async (userId) => {
 export const getOnlineUserList = async () => {
     return await redisClient.sMembers('online_users');
 };
+
+// Tüm kullanıcıları offline yap
+export const resetAllOnlineUsers = async () => {
+    const onlineUserIds = await redisClient.sMembers('online_users');
+    for (const userId of onlineUserIds) {
+        await redisClient.set(`user:${userId}:isActive`, 'false');
+    }
+    await redisClient.del('online_users');
+    console.log('Tüm kullanıcılar offline olarak işaretlendi ve online_users seti temizlendi.');
+};
+

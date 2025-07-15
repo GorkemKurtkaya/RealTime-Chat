@@ -5,6 +5,7 @@ import Message from "../models/messageModel.js";
 import { getIO } from "../utils/socket.js";
 import Conversation from "../models/conversationModel.js";
 import redisClient from '../utils/redis.js';
+import defaultLogger from '../utils/logger.js';
 
 
 const randomMessages = [
@@ -20,13 +21,15 @@ const AUTO_MESSAGE_QUEUE = "auto_messages";
 // 1. Yeni Mesaj Planlama
 export const scheduleAutoMessages = async () => {
   const onlineUserIds = await redisClient.sMembers('online_users');
-  if (onlineUserIds.length < 2) return;
 
   const users = await User.find({ _id: { $in: onlineUserIds } });
-  if (users.length < 2) return;
+
+  if (users.length < 2) {
+    defaultLogger.info('AutoMessage: Yeterli user yok, çıkılıyor.');
+    return;
+  }
 
   const shuffled = shuffleArray(users);
-  
   const batch = [];
   for (let i = 0; i < shuffled.length - 1; i += 2) {
     const sender = shuffled[i]._id;
@@ -36,19 +39,39 @@ export const scheduleAutoMessages = async () => {
       participants: { $all: [sender, receiver], $size: 2 }
     });
     if (!conversation) {
-      conversation = await Conversation.create({ participants: [sender, receiver] });
+      try {
+        conversation = await Conversation.create({
+          name: `Otomatik Oda`,
+          description: 'Otomatik mesaj için oluşturuldu.',
+          participants: [sender, receiver],
+          admins: [sender, receiver]
+        });
+        defaultLogger.info('AutoMessage: Yeni oda oluşturuldu.');
+      } catch (err) {
+        defaultLogger.error('AutoMessage: Oda oluşturulamadı.', { error: err.message });
+      }
+    } else {
+      defaultLogger.info('AutoMessage: Mevcut oda bulundu.');
     }
 
-    batch.push({
-      sender,
-      receiver,
-      conversationId: conversation._id,
-      content: getRandomMessage(),
-      sendDate: new Date(Date.now() + 1 * 60 * 1000) // Mesajın Gönderimini 1 dakika sonraya planladım burdan arttırılabilir.
-    });
+    if (conversation) {
+      batch.push({
+        sender,
+        receiver,
+        conversationId: conversation._id,
+        content: getRandomMessage(),
+        sendDate: new Date(Date.now() + 1 * 60 * 1000)
+      });
+    }
   }
 
-  await AutoMessage.insertMany(batch);
+  defaultLogger.info(`AutoMessage: ${batch.length} adet otomatik mesaj oluşturulacak.`);
+  if (batch.length > 0) {
+    await AutoMessage.insertMany(batch);
+    defaultLogger.info('AutoMessage: AutoMessage insert edildi.');
+  } else {
+    defaultLogger.info('AutoMessage: Batch boş, insert yapılmadı.');
+  }
 };
 
 // 2. Kuyruğa Eklenecek Mesajları İşle
@@ -59,11 +82,11 @@ export const processPendingMessages = async () => {
     isSent: false
   });
 
-  console.log(`[AutoMessage] İşlenecek mesaj sayısı: ${pendingMessages.length}`);
+  defaultLogger.info(`[AutoMessage] İşlenecek mesaj sayısı: ${pendingMessages.length}`);
 
   for (const msg of pendingMessages) {
     try {
-      console.log(`[AutoMessage] Kuyruğa gönderiliyor: ID=${msg._id}, receiver=${msg.receiver}, content="${msg.content}"`);
+      defaultLogger.info(`[AutoMessage] Kuyruğa gönderiliyor: ID=${msg._id}`);
       await rabbitMQ.sendToQueue(AUTO_MESSAGE_QUEUE, {
         autoMessageId: msg._id.toString(),
         senderId: msg.sender,
@@ -73,9 +96,9 @@ export const processPendingMessages = async () => {
       });
 
       await AutoMessage.findByIdAndUpdate(msg._id, { isQueued: true });
-      console.log(`[AutoMessage] Mesaj kuyruğa alındı: ID=${msg._id}`);
+      defaultLogger.info(`[AutoMessage] Mesaj kuyruğa alındı: ID=${msg._id}`);
     } catch (err) {
-      console.error(`[AutoMessage] Mesaj kuyruğa eklenemedi (ID: ${msg._id}):`, err);
+      defaultLogger.error(`[AutoMessage] Mesaj kuyruğa eklenemedi (ID: ${msg._id})`, { error: err.message });
     }
   }
 };
