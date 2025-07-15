@@ -3,6 +3,7 @@ import {
     getMessage
 } from '../services/messageService.js';
 
+// Mesaj Gönderme
 export const sendMessage = async (req, res) => {
   try {
     const { conversationId, sender, content } = req.body;
@@ -13,6 +14,7 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+// Mesajları Getirme
 export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;

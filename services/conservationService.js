@@ -1,4 +1,4 @@
-import Conversation from '../models/conservationModel.js';
+import Conversation from '../models/conversationModel.js';
 
 export const createConversations = async (userIds) => {
   const existing = await Conversation.findOne({

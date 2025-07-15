@@ -8,14 +8,12 @@ const socketAuthMiddleware = async (socket, next) => {
       socket.handshake.query?.token ||
       socket.handshake.query?.['auth.token'];
 
-    console.log('Gelen token:', token);
 
     if (!token) {
       return next(new Error('Token bulunamadı'));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded:', decoded);
 
     
 
@@ -24,7 +22,7 @@ const socketAuthMiddleware = async (socket, next) => {
         ...user.toObject(),
         password: undefined,
     };
-    console.log('User:',  userWithoutPassword);
+    // console.log('User:',  userWithoutPassword);
 
     if (!user) {
       return next(new Error('Geçersiz kullanıcı'));

@@ -9,3 +9,18 @@ export const getAllUsers = async () => {
         throw new Error("Kullanıcılar alınamadı: " + error.message);
     }
     }
+
+
+export const changeNameandMailService = async (userId, newName, newMail) => {
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    user.name = newName || user.name;
+    user.email = newMail || user.email;
+    await user.save();
+
+    return "Name and/or email changed successfully";
+};

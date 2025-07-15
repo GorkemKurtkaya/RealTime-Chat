@@ -10,6 +10,12 @@ import messageRoute from './routes/messageRoute.js';
 import socketHandler from './utils/socket.js';
 import { Server } from 'socket.io';
 import http from 'http';
+import "./cron/autoMessageCron.js";
+import rabbitMQ from './utils/rabbitmq.js';
+import { sendAutoMessage } from './services/autoMessageService.js';
+
+
+rabbitMQ.connect();
 
 dotenv.config();
 
@@ -17,6 +23,7 @@ conn();
 
 const app = express();
 const server = http.createServer(app);
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,6 +43,8 @@ app.use("/messages", messageRoute);
 
 
 socketHandler(server);
+
+rabbitMQ.consume("auto_messages", sendAutoMessage);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

@@ -7,6 +7,8 @@ import sanitizeHtml from 'sanitize-html';
 
 const onlineUsers = new Map();
 
+let ioInstance = null;
+
 const socketHandler = (server) => {
   const io = new Server(server, {
     cors: {
@@ -14,6 +16,8 @@ const socketHandler = (server) => {
       methods: ['GET', 'POST']
     }
   });
+
+  ioInstance = io;
 
   io.use(socketAuthMiddleware);
   const messageTimestamps = new Map();
@@ -129,5 +133,7 @@ const socketHandler = (server) => {
     });
   });
 };
+
+export const getIO = () => ioInstance;
 
 export default socketHandler;

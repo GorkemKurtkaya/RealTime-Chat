@@ -3,6 +3,7 @@ import {
     getUserConversations
 } from "../services/conservationService.js";
 
+//Konuşma Oluşturma 
 export const createConversation = async (req, res) => {
   try {
     const { userIds } = req.body;
@@ -13,6 +14,7 @@ export const createConversation = async (req, res) => {
   }
 };
 
+// Konuşmaları Getirme
 export const getConversations = async (req, res) => {
   try {
     const { userId } = req.params;

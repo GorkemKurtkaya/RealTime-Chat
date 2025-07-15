@@ -32,7 +32,6 @@ export const login = async (req, res) => {
         password: undefined,
     };
 
-    // Cookie'ye token yaz
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
     res.cookie("userId", user._id.toString(), { httpOnly: true, sameSite: "strict" });
     res.status(200).json({ message: "Giriş başarılı", user: userWithoutPassword, token });
