@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import socketAuthMiddleware from '../utils/socketAuthMiddleware.js';
+import socketAuthMiddleware from '../middleware/socketAuthMiddleware.js';
 import { sendToMessage } from '../services/messageService.js';
 import { getUserConversations } from '../services/conservationService.js';
 import User from '../models/userModel.js';
