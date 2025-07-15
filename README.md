@@ -1,6 +1,6 @@
 # 🚀 RealTime-Chat
 
-> **Gerçek Zamanlı, Otomatik Mesajlaşma ve Modern Sohbet Uygulaması**
+> **RealTime-Chat**, Node.js, Express.js, Socket.io, MongoDB, Redis ve RabbitMQ teknolojileriyle geliştirilmiş, gerçek zamanlı mesajlaşma ve otomatik mesaj servisleri sunan, ölçeklenebilir ve güvenli bir sohbet uygulamasıdır.
 
 ---
 
@@ -105,15 +105,16 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 - `POST   /auth/login`    → Giriş _(JWT token ve refresh token cookie olarak döner)_
 - `POST   /auth/refresh`  → Token yenileme
 - `POST   /auth/logout`   → Çıkış
-- `GET    /auth/profile`  → Profil bilgisi
+- `GET    /auth/me`  → Profil bilgisi
 
 ### 👤 Kullanıcı İşlemleri
 
-- `GET    /user`                   → Kullanıcı listesi
-- `POST   /user/changeNameAndEmail`→ Ad ve e-posta güncelleme
-- `GET    /user/onlineCount`       → Online kullanıcı sayısı
-- `GET    /user/onlineStatus/:id`  → Belirli kullanıcının online durumu
-- `GET    /user/onlineList`        → Online kullanıcı listesi
+- `GET    /user/list`              → Kullanıcı listesi
+- `PUT    /user/update`             → Ad ve e-posta güncelleme
+- `GET    /user/online/count`       → Online kullanıcı sayısı
+- `GET    /user/online/ids`        → Online kullanıcı idleri
+- `GET    /user/online/:userid`  → Belirli kullanıcının online durumu
+
 
 ### 💬 Mesajlaşma
 
