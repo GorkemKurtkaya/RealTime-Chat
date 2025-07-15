@@ -3,6 +3,11 @@
 > **RealTime-Chat**, Node.js, Express.js, Socket.io, MongoDB, Redis ve RabbitMQ teknolojileriyle geliştirilmiş, gerçek zamanlı mesajlaşma ve otomatik mesaj servisleri sunan, ölçeklenebilir ve güvenli bir sohbet uygulamasıdır.
 
 ---
+## 📑 API Dökümantasyonu & Postman
+
+- [API Dökümanı (Postman)](https://documenter.getpostman.com/view/33385054/2sB34hHgiC)
+
+---
 
 ## 📚 İçindekiler
 
@@ -92,7 +97,6 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 ## 📑 API Dökümantasyonu & Postman
 
 - [API Dökümanı (Postman)](https://documenter.getpostman.com/view/33385054/2sB34hHgiC)
-- [Postman Koleksiyonu](POSTMAN_LINKINIZI_BURAYA_EKLEYIN)
 
 ---
 
