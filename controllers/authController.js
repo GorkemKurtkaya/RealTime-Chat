@@ -53,12 +53,12 @@ export const login = async (req, res) => {
 export const refresh = async (req, res) => {
   defaultLogger.info('refresh fonksiyonu çağrıldı', { cookies: req.cookies });
   try {
-    const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) {
+    const refreshTokenValue = req.cookies.refreshToken;
+    if (!refreshTokenValue) {
       defaultLogger.warn('Refresh token bulunamadı', { cookies: req.cookies });
       return res.status(401).json({ error: "Refresh token bulunamadı." });
     }
-    const { user, token } = await refreshToken(refreshToken);
+    const { user, token } = await refreshToken(refreshTokenValue);
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
     defaultLogger.info('Token yenilendi', { userId: user._id });
     res.status(200).json({ message: "Token yenilendi", token });

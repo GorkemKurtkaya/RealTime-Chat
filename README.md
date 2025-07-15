@@ -89,6 +89,12 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 ```
 
 ---
+## 📑 API Dökümantasyonu & Postman
+
+- [API Dökümanı (Postman)](https://documenter.getpostman.com/view/33385054/2sB34hHgiC)
+- [Postman Koleksiyonu](POSTMAN_LINKINIZI_BURAYA_EKLEYIN)
+
+---
 
 ## 👨‍💻 Çalıştırma ve Geliştirme
 
@@ -184,14 +190,181 @@ docker-compose.yaml → Redis ve RabbitMQ servisleri
 
 ---
 
-## 📑 API Dökümantasyonu & Postman
+## 🌐 Socket.io Kullanım Rehberi
 
-- [API Dökümanı (Swagger veya benzeri)](DOKUMAN_LINKINIZI_BURAYA_EKLEYIN)
-- [Postman Koleksiyonu](POSTMAN_LINKINIZI_BURAYA_EKLEYIN)
+Gerçek zamanlı özellikleri test etmek ve kullanmak için Socket.io ile bağlantı kurmanız gerekir. Aşağıda, Postman veya benzeri araçlarla nasıl bağlantı kuracağınızı ve eventleri nasıl dinleyeceğinizi adım adım bulabilirsiniz.
+
+### 1. Socket.io Sunucusuna Bağlanma
+
+- Sunucu adresi genellikle: `ws://localhost:3000` veya `wss://sunucu-adresi`
+- Bağlantı sırasında **JWT token** ile kimlik doğrulama zorunludur.
+
+#### Postman ile Bağlantı Kurma
+1. **Yeni WebSocket Request** oluşturun.
+2. **URL** kısmına: `ws://localhost:3000` yazın.
+3. **Query Params** sekmesine gelin, aşağıdaki gibi parametre ekleyin:
+   - Key: `auth.token`
+   - Value: `<JWT_TOKENINIZ>`
+   > JWT token'ı `/auth/login` endpointinden alabilirsiniz.
+4. **Connect** butonuna tıklayın.
+
+### 2. Event Dinleme (Listen)
+- Bağlantı kurulduktan sonra, dinlemek istediğiniz eventleri ekleyin.
+- Örneğin, aşağıdaki eventleri dinleyebilirsiniz:
+  - `message_received`
+  - `send_message`
+  - `join_room`
+  - `online_users`
+  - `message_read`
+  - `typing`
+  - `stop_typing`
+  - `message_read`
+  - `notification`
+- Postman'da **Listen for an event** kısmına event adını yazıp dinlemeye başlayabilirsiniz.
+
+### 3. Odaya Katılma (join_room)
+- Bir odaya katılmak için aşağıdaki şekilde bir event gönderin:
+  - Event: `join_room`
+  - Data: Oda ID'si (ör: `{"roomId": "<CONVERSATION_ID>"}` veya sadece oda id)
+
+### 4. Mesaj Gönderme (send_message)
+- Odaya mesaj göndermek için:
+  - Event: `send_message`
+  - Data:
+    ```json
+    {
+      "roomId": "<CONVERSATION_ID>",
+      "content": "Merhaba!"
+    }
+    ```
+
+### 5. Yazıyor Bildirimi (typing/stop_typing)
+- Yazmaya başladığınızda:
+  - Event: `typing`
+  - Data: Oda ID'si
+- Yazmayı bıraktığınızda:
+  - Event: `stop_typing`
+  - Data: Oda ID'si
+
+### 6. Odadan Ayrılma (leave_room)
+- Event: `leave_room`
+- Data: Oda ID'si
+
+### 7. Bağlantı Sonlandırma
+- WebSocket bağlantısını kapatmak için Postman'da **Disconnect** butonunu kullanabilirsiniz.
+
+
+---
 
 ## 📡 Socket.io Event Dökümantasyonu
 
-- [Socket.io Event Listesi ve Payload Detayları](SOCKET_IO_DOKUMAN_LINKINIZI_BURAYA_EKLEYIN)
+Aşağıda uygulamada kullanılan tüm Socket.io eventlerinin açıklamaları ve payload örnekleri yer almaktadır.
+
+### Bağlantı
+- **URL:** `ws://localhost:3000`
+- **Auth:** Query param ile `auth.token=<JWT_TOKEN>`
+
+---
+
+### Client → Server Eventleri
+
+| Event Adı         | Açıklama                        | Payload/Parametre Örneği                |
+|-------------------|---------------------------------|-----------------------------------------|
+| `join_room`       | Odaya katılma                   | `"<roomId>"` veya `{ "roomId": "..." }`|
+| `send_message`    | Odaya mesaj gönderme            | `{ "roomId": "...", "content": "Merhaba!" }` |
+| `typing`          | Yazıyor bildirimi başlatma      | `"<roomId>"`                            |
+| `stop_typing`     | Yazıyor bildirimi bitirme       | `"<roomId>"`                            |
+| `message_read`    | Mesajı okundu olarak işaretleme | `{ "roomId": "...", "messageId": "..." }` |
+| `leave_room`      | Odadan ayrılma                  | `"<roomId>"`                            |
+
+---
+
+### Server → Client Eventleri
+
+| Event Adı           | Açıklama                                 | Payload Örneği |
+|---------------------|------------------------------------------|----------------|
+| `user_online`       | Bir kullanıcı online oldu                | `{ "userId": "..." }` |
+| `user_offline`      | Bir kullanıcı offline oldu               | `{ "userId": "..." }` |
+| `online_users`      | Oda içindeki online kullanıcılar         | `{ "roomId": "...", "users": ["..."] }` |
+| `currently_typing`  | Oda içindeki yazan kullanıcılar          | `{ "roomId": "...", "users": ["..."] }` |
+| `message_received`  | Odaya yeni mesaj geldi                   | `{ "message": "...", "senderId": "...", "timestamp": "..." }` |
+| `notification`      | Yeni mesaj bildirimi                     | `{ "type": "new_message", "message": "Yeni mesajınız var!", "roomId": "...", "senderId": "..." }` |
+| `typing`            | Bir kullanıcı yazıyor                    | `{ "userId": "...", "roomId": "..." }` |
+| `stop_typing`       | Bir kullanıcı yazmayı bıraktı            | `{ "userId": "...", "roomId": "..." }` |
+| `message_read`      | Mesaj okundu bildirimi                   | `{ "messageId": "...", "userId": "..." }` |
+| `error`             | Hata mesajı                              | `{ "message": "..." }` |
+
+---
+
+### Event Akış Örnekleri
+
+#### Odaya Katılma
+- **Client → Server:**
+  ```json
+  // join_room
+  "6876717eb556b1ecc6993c78"
+  ```
+- **Server → Client:**
+  ```json
+  // online_users
+  { "roomId": "6876717eb556b1ecc6993c78", "users": ["...", "..."] }
+  // currently_typing
+  { "roomId": "6876717eb556b1ecc6993c78", "users": [] }
+  ```
+
+#### Mesaj Gönderme
+- **Client → Server:**
+  ```json
+  // send_message
+  { "roomId": "6876717eb556b1ecc6993c78", "content": "Merhaba!" }
+  ```
+- **Server → Client:**
+  ```json
+  // message_received
+  { "message": "Merhaba!", "senderId": "...", "timestamp": "..." }
+  // notification
+  { "type": "new_message", "message": "Yeni mesajınız var!", "roomId": "...", "senderId": "..." }
+  ```
+
+#### Yazıyor Bildirimi
+- **Client → Server:**
+  ```json
+  // typing
+  "6876717eb556b1ecc6993c78"
+  ```
+- **Server → Client:**
+  ```json
+  // typing
+  { "userId": "...", "roomId": "..." }
+  // stop_typing
+  { "userId": "...", "roomId": "..." }
+  ```
+
+#### Mesaj Okundu
+- **Client → Server:**
+  ```json
+  // message_read
+  { "roomId": "6876717eb556b1ecc6993c78", "messageId": "..." }
+  ```
+- **Server → Client:**
+  ```json
+  // message_read
+  { "messageId": "...", "userId": "..." }
+  ```
+
+#### Odadan Ayrılma
+- **Client → Server:**
+  ```json
+  // leave_room
+  "6876717eb556b1ecc6993c78"
+  ```
+- **Server → Client:**
+  ```json
+  // user_offline
+  { "userId": "..." }
+  ```
+
+---
 
 ## 📑 Loglama
 
