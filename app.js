@@ -13,6 +13,7 @@ import http from 'http';
 import "./cron/autoMessageCron.js";
 import rabbitMQ from './utils/rabbitmq.js';
 import { sendAutoMessage } from './services/autoMessageService.js';
+import { authLimiter, messageLimiter, conversationLimiter, userLimiter } from './middleware/rate-limitmiddleware.js';
 
 
 
@@ -41,10 +42,10 @@ app.use((req, res, next) => {
 });
 
 
-app.use("/auth", authRoute);
-app.use("/user", userRoute);
-app.use("/conservations", conservationRoute);
-app.use("/messages", messageRoute);
+app.use("/auth", authLimiter, authRoute);
+app.use("/user", userLimiter, userRoute);
+app.use("/conservations", conversationLimiter, conservationRoute);
+app.use("/messages", messageLimiter, messageRoute);
 
 
 socketHandler(server);
@@ -53,5 +54,5 @@ rabbitMQ.consume("auto_messages", sendAutoMessage);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    logger.info(`Server ${PORT}`);
+    logger.info(`Server ${PORT} Portunda Ayakta`);
 });
