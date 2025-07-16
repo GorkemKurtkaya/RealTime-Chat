@@ -309,8 +309,6 @@ Aşağıda uygulamada kullanılan tüm Socket.io eventlerinin açıklamaları ve
   ```json
   // online_users
   { "roomId": "6876717eb556b1ecc6993c78", "users": ["...", "..."] }
-  // currently_typing
-  { "roomId": "6876717eb556b1ecc6993c78", "users": [] }
   ```
 
 #### Mesaj Gönderme
