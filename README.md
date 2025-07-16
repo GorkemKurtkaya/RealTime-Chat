@@ -287,10 +287,7 @@ Aşağıda uygulamada kullanılan tüm Socket.io eventlerinin açıklamaları ve
 
 | Event Adı           | Açıklama                                 | Payload Örneği |
 |---------------------|------------------------------------------|----------------|
-| `user_online`       | Bir kullanıcı online oldu                | `{ "userId": "..." }` |
-| `user_offline`      | Bir kullanıcı offline oldu               | `{ "userId": "..." }` |
 | `online_users`      | Oda içindeki online kullanıcılar         | `{ "roomId": "...", "users": ["..."] }` |
-| `currently_typing`  | Oda içindeki yazan kullanıcılar          | `{ "roomId": "...", "users": ["..."] }` |
 | `message_received`  | Odaya yeni mesaj geldi                   | `{ "message": "...", "senderId": "...", "timestamp": "..." }` |
 | `notification`      | Yeni mesaj bildirimi                     | `{ "type": "new_message", "message": "Yeni mesajınız var!", "roomId": "...", "senderId": "..." }` |
 | `typing`            | Bir kullanıcı yazıyor                    | `{ "userId": "...", "roomId": "..." }` |
